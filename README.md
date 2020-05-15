@@ -102,7 +102,7 @@ func (t *RecvPro) Consumer(dataByte []byte) error {
 /*
 如果消息 消费3次后 仍然失败  此处可以根据情况 对消息进行告警提醒 或者 补偿  入库db  钉钉告警等等
  */
-func (t *RecvPro) FailAction(dataByte []byte) error {
+func (t *RecvPro) FailAction(err error,dataByte []byte) error {
 	fmt.Println(string(dataByte))
 	fmt.Println("任务处理失败了，我要进入db日志库了")
 	fmt.Println("任务处理失败了，发送钉钉消息通知主人")
@@ -188,7 +188,7 @@ type QueueExchange struct {
 // 定义接收者接口
 type Receiver interface {
 	Consumer([]byte)    error
-	FailAction([]byte)  error
+	FailAction(error ,[]byte)  error
 }
 ```
 

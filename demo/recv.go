@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/ichunt2019/go-rabbitmq/utils/rabbitmq"
+	"github.com/ichunt2019/golang-rbmq-sl/utils/rabbitmq"
 	"time"
+	"errors"
 )
 
 type RecvPro struct {
@@ -21,16 +22,17 @@ func (t *RecvPro) Consumer(dataByte []byte) error {
 	//return errors.New("顶顶顶顶")
 	fmt.Println(string(dataByte))
 	time.Sleep(1*time.Second)
-	//return errors.New("顶顶顶顶")
-	return nil
+	return errors.New("顶顶顶顶")
+	//return nil
 }
 
 //消息已经消费3次 失败了 请进行处理
 /*
 如果消息 消费3次后 仍然失败  此处可以根据情况 对消息进行告警提醒 或者 补偿  入库db  钉钉告警等等
  */
-func (t *RecvPro) FailAction(dataByte []byte) error {
+func (t *RecvPro) FailAction(err error,dataByte []byte) error {
 	fmt.Println(string(dataByte))
+	fmt.Println(err)
 	fmt.Println("任务处理失败了，我要进入db日志库了")
 	fmt.Println("任务处理失败了，发送钉钉消息通知主人")
 	return nil

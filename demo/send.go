@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	_ "fmt"
-	"github.com/ichunt2019/go-rabbitmq/utils/rabbitmq"
+	"github.com/ichunt2019/golang-rbmq-sl/utils/rabbitmq"
 )
 
 func main() {

@@ -25,7 +25,7 @@ type RetryProducer interface {
 // 定义接收者接口
 type Receiver interface {
 	Consumer([]byte)    error
-	FailAction([]byte)  error
+	FailAction(error , []byte)  error
 }
 
 // 定义RabbitMQ对象
@@ -314,7 +314,7 @@ func (mq *RabbitMQ) ListenReceiver(receiver Receiver,routineNum int) {
 			}else{
 				//消息失败 入库db
 				fmt.Printf("消息处理3次后还是失败了 入库db 钉钉告警 \n")
-				receiver.FailAction(msg.Body)
+				receiver.FailAction(err,msg.Body)
 			}
 			err = msg.Ack(true)
 			if err != nil {
