@@ -206,8 +206,8 @@ func (mq *RabbitMQ)sendDelayMsg(body string,ttl int64) (err error){
 	//fmt.Printf("%+v",mq)
 	// 用于检查队列是否存在,已经存在不需要重复声明
 	ttlstring := strconv.FormatInt(ttl,10)
-	queueName := fmt.Sprintf("%s_%s",mq.QueueName ,ttlstring)
-	routingKey := fmt.Sprintf("%s_%s",mq.QueueName ,ttlstring)
+	queueName := fmt.Sprintf("%s_delay_%s",mq.QueueName ,ttlstring)
+	routingKey := fmt.Sprintf("%s_delay_%s",mq.QueueName ,ttlstring)
 	_, err = ch.QueueDeclare(queueName, true, false, false, false, table)
 	if err != nil {
 		return
