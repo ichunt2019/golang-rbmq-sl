@@ -9,7 +9,7 @@ import (
 func main() {
 
 
-	for i := 1;i<10;i++{
+	for i := 6;i<20;i++{
 		body := fmt.Sprintf("{\"order_id\":%d}",i)
 		fmt.Println(body)
 
@@ -43,10 +43,13 @@ func main() {
 			"a_test_0001",
 			"hello_go",
 			"direct",
-			"amqp://guest:guest@192.168.2.232:5672/",
+			"amqp://guest:guest@192.168.1.252:5672/",
 		}
 
-		rabbitmq.Send(queueExchange,body)
+		//rabbitmq.Send(queueExchange,body)
+		//ttl 秒
+		_ = rabbitmq.SendDelay(queueExchange,body,20)
+		//fmt.Println(err)
 
 
 	}

@@ -1,6 +1,9 @@
 package rabbitmq
 
 import (
+	"errors"
+	"strconv"
+
 	//"errors"
 	"fmt"
 	"github.com/streadway/amqp"
@@ -110,8 +113,8 @@ func NewMq(q QueueExchange) RabbitMQ {
 	}
 }
 
-func (mq *RabbitMQ) sendMsg (body string)  {
-	err :=mq.MqOpenChannel()
+func (mq *RabbitMQ) sendMsg (body string) (err error)  {
+	err = mq.MqOpenChannel()
 	ch := mq.Channel
 	if err != nil{
 		log.Printf("Channel err  :%s \n", err)
@@ -163,7 +166,95 @@ func (mq *RabbitMQ) sendMsg (body string)  {
 				Body:        []byte(body),
 			})
 	}
+	return
 
+}
+
+
+/*
+发送延时消息
+ */
+func (mq *RabbitMQ)sendDelayMsg(body string,ttl int64) (err error){
+	err =mq.MqOpenChannel()
+	ch := mq.Channel
+	if err != nil{
+		log.Printf("Channel err  :%s \n", err)
+	}
+	defer mq.Channel.Close()
+
+	if mq.ExchangeName != "" {
+		if mq.ExchangeType == ""{
+			mq.ExchangeType = "direct"
+		}
+		err =  ch.ExchangeDeclare(mq.ExchangeName, mq.ExchangeType, true, false, false, false, nil)
+		if err != nil {
+			return
+		}
+	}
+
+
+	if ttl <= 0{
+		return errors.New("发送延时消息，ttl参数是必须的")
+	}
+
+	table := make(map[string]interface{},3)
+	table["x-dead-letter-routing-key"] = mq.RoutingKey
+	table["x-dead-letter-exchange"] = mq.ExchangeName
+	table["x-message-ttl"] = ttl*1000
+
+	//fmt.Printf("%+v",table)
+	//fmt.Printf("%+v",mq)
+	// 用于检查队列是否存在,已经存在不需要重复声明
+	ttlstring := strconv.FormatInt(ttl,10)
+	queueName := fmt.Sprintf("%s_%s",mq.QueueName ,ttlstring)
+	routingKey := fmt.Sprintf("%s_%s",mq.QueueName ,ttlstring)
+	_, err = ch.QueueDeclare(queueName, true, false, false, false, table)
+	if err != nil {
+		return
+	}
+	// 绑定任务
+	if routingKey != "" && mq.ExchangeName != "" {
+		err = ch.QueueBind(queueName, routingKey, mq.ExchangeName, false, nil)
+		if err != nil {
+			return
+		}
+	}
+
+	header := make(map[string]interface{},1)
+
+	header["retry_nums"] = 0
+
+	var ttl_exchange string
+	var ttl_routkey string
+
+	if(mq.ExchangeName != "" ){
+		ttl_exchange = mq.ExchangeName
+	}else{
+		ttl_exchange = ""
+	}
+
+
+	if mq.RoutingKey != "" && mq.ExchangeName != ""{
+		ttl_routkey = routingKey
+	}else{
+		ttl_routkey = queueName
+	}
+
+	err = mq.Channel.Publish(
+		ttl_exchange,     // exchange
+		ttl_routkey, // routing key
+		false,  // mandatory
+		false,  // immediate
+		amqp.Publishing {
+			ContentType: "text/plain",
+			Body:        []byte(body),
+			Headers:header,
+		})
+	if err != nil {
+		return
+
+	}
+	return
 }
 
 
@@ -367,16 +458,36 @@ func retry_msg(msg []byte,retry_nums int32,queueExchange QueueExchange){
 }
 
 
-func Send(queueExchange QueueExchange,msg string){
+func Send(queueExchange QueueExchange,msg string) (err error){
 	mq := NewMq(queueExchange)
-	mq.MqConnect()
+	err = mq.MqConnect()
+	if err != nil{
+		return
+	}
 
 	defer func(){
 		mq.CloseMqConnect()
 	}()
-	mq.sendMsg(msg)
 
+	err = mq.sendMsg(msg)
+
+	return
 }
+
+//发送延时消息
+func SendDelay(queueExchange QueueExchange,msg string,ttl int64)(err error){
+	mq := NewMq(queueExchange)
+	err = mq.MqConnect()
+	if err != nil{
+		return
+	}
+	defer func(){
+		_ = mq.CloseMqConnect()
+	}()
+	err = mq.sendDelayMsg(msg,ttl)
+	return
+}
+
 
 /*
 runNums  开启并发执行任务数量
