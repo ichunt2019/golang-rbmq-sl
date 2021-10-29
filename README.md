@@ -1,11 +1,13 @@
 ## go get github.com/ichunt2019/golang-rbmq-sl
 
 **发送消息**
+
 详见demo/send.go
 
 
 
 **消费消息**
+
 详见demo/recv.go
 
 
@@ -38,7 +40,7 @@ type QueueExchange struct {
 	RtKey   string           // key值
 	ExName  string           // 交换机名称
 	ExType  string           // 交换机类型
-	Dns     string			  //链接地址
+	Dns     string           //链接地址
 }
 
 ```
