@@ -27,28 +27,30 @@ func main() {
 			RtKey  此处建议填写成 RtKey 和 QuName 一样的值
 		 */
 
-		//queueExchange := rabbitmq.QueueExchange{
-		//	"a_test_0001",
-		//	"a_test_0001",
-		//	"",
-		//	"",
-		//	"amqp://guest:guest@192.168.2.232:5672/",
-		//}
-
-		/*
-		 使用自定义的交换机
-		 */
 		queueExchange := rabbitmq.QueueExchange{
 			"a_test_0001",
 			"a_test_0001",
-			"hello_go",
-			"direct",
-			"amqp://guest:guest@192.168.1.252:5672/",
+			"",
+			"",
+			"amqp://guest:guest@192.168.2.232:5672/",
 		}
 
-		//rabbitmq.Send(queueExchange,body)
-		//ttl 秒
-		_ = rabbitmq.SendDelay(queueExchange,body,20)
+		/*
+		 使用自定义的交换机 发送延时消息
+		 */
+		//queueExchange := rabbitmq.QueueExchange{
+		//	"a_test_0001",
+		//	"a_test_0001",
+		//	"hello_go",
+		//	"direct",
+		//	"amqp://guest:guest@192.168.1.252:5672/",
+		//}
+
+		_ = rabbitmq.Send(queueExchange,body)
+
+
+		//ttl 秒 发送延时消息
+		//_ = rabbitmq.SendDelay(queueExchange,body,20)
 		//fmt.Println(err)
 
 
